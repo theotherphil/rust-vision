@@ -5,3 +5,9 @@ authors = ["theotherphil"]
 
 [dependencies]
 streaming-stats = "*"
+
+[dependencies.image]
+path = "../image/"
+
+[dependencies.imageproc]
+path = "../imageproc/"

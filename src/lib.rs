@@ -1,5 +1,18 @@
 
 extern crate stats;
+extern crate image;
+extern crate imageproc;
+
+use image::{
+    GenericImage,
+    Luma,
+    Pixel,
+};
+
+use imageproc::corners::{
+    corner_score_fast12,
+    corners_fast12
+};
 
 use stats::{
     mean,
@@ -102,6 +115,33 @@ fn count_bits(x: u64) -> u8 {
         y = y & y - 1;
     }
     count
+}
+
+/// Samples an 8x8 patch of every-other-pixel around a given point.
+/// Return None if the pixel is too near an image boundary
+pub fn sample_patch<I>(image: &I, x: u32, y: u32) -> Option<[u8; 64]>
+    where I: GenericImage<Pixel=Luma<u8>> + 'static {
+
+    let (width, height) = image.dimensions();
+    if x < 7 || y < 7 || x + 7 >= width || y + 7 >= height {
+        return None;
+    }
+
+    // +/- 1, 3, 5, 7
+    let offsets = (0..8).map(|x| 2 * x - 7).collect::<Vec<_>>();
+
+    let mut count = 0;
+    let mut sample = [0u8; 64];
+
+    for dy in offsets.iter() {
+        for dx in offsets.iter() {
+            let p = image.get_pixel(x + dx, y + dy)[0];
+            sample[count] = p;
+            count += 1;
+        }
+    }
+
+    Some(sample)
 }
 
 #[cfg(test)]
